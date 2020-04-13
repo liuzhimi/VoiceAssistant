@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Voice</string>
+    <!-- 请替换成在语音云官网申请的appid -->
+    <string name="app_id">58057ac8</string>
+
+    <string name="cando">   目前能做的事情有</string>
+</resources>
