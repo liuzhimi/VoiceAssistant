@@ -138,7 +138,7 @@ public class FloatingBallView extends FloatingActionButton implements VoiceAssis
                 break;
         }
         //如果是拖拽则消耗事件，否则正常传递即可。
-        return true || super.onTouchEvent(event);
+        return true;
     }
 
     public void setOnTouch(OnTouch onTouch) {
