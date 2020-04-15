@@ -29,6 +29,7 @@ public class FloatingBallActivity extends AppCompatActivity {
                 startActivity(new Intent(context, VoiceAssistantActivity.class));
             }
         });
+//        startActivity(new Intent(context, WakeDemo.class));
     }
 
     private void getFloatingBallStatus() {

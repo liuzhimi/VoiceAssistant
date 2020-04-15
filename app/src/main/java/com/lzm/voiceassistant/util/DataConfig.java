@@ -26,11 +26,11 @@ public class DataConfig {
 
     public static AssistantResponse getAssistantResponse() {
         AssistantResponse assistantResponse = new AssistantResponse();
-        assistantResponse.setAnswer(new AnswerBean("I don't know", "TT"));
+        assistantResponse.setAnswer(new AnswerBean("", "TT"));
         assistantResponse.setDataJson("{\"name\": \"Lemon\"}");
         assistantResponse.setMoreResults(null);
-        assistantResponse.setService(Service.OPEN_XXX);
-        assistantResponse.setText("今天星期几");
+        assistantResponse.setService(Service.DISPLAY_XXX);
+        assistantResponse.setText("打开百度");
         assistantResponse.setWebPage(new WebPageBean(null, "https://www.baidu.com"));
         return assistantResponse;
     }

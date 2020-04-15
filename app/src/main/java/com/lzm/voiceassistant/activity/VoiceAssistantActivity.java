@@ -40,6 +40,7 @@ import com.lzm.voiceassistant.bean.Name;
 import com.lzm.voiceassistant.bean.Service;
 import com.lzm.voiceassistant.util.DataConfig;
 import com.lzm.voiceassistant.util.DisplayUtil;
+import com.lzm.voiceassistant.util.WakeUtil;
 
 public class VoiceAssistantActivity extends Activity implements View.OnClickListener, OrderAdapter.OrderCallback {
 
@@ -53,6 +54,7 @@ public class VoiceAssistantActivity extends Activity implements View.OnClickList
     RecyclerView recyclerView;
     WebView webView;
     RecyclerView rvRecommend;
+    OrderAdapter adapter;
 
     // 语音合成对象
     private SpeechSynthesizer mTts;
@@ -209,6 +211,8 @@ public class VoiceAssistantActivity extends Activity implements View.OnClickList
         }
     };
 
+    private WakeUtil wakeUtil;
+
     @SuppressLint("ShowToast")
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -225,6 +229,17 @@ public class VoiceAssistantActivity extends Activity implements View.OnClickList
         mTts = SpeechSynthesizer.createSynthesizer(VoiceAssistantActivity.this, mTtsInitListener);
 
         initLayout();
+
+        wakeUtil = new WakeUtil(this) {
+            @Override
+            public void wakeUp() {
+                container.setVisibility(View.VISIBLE);
+                speakAnswer("我能帮您做什么吗?");
+                wakeUtil.stopWake();
+            }
+        };
+
+        wakeUtil.wake();
     }
 
     private void resetView() {
@@ -250,10 +265,8 @@ public class VoiceAssistantActivity extends Activity implements View.OnClickList
 
         recyclerView = container.findViewById(R.id.list);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        OrderAdapter adapter = new OrderAdapter(this);
+        adapter = new OrderAdapter(this);
         adapter.setOrders(DataConfig.getOrders());
-
-        speakAnswer("我能帮您做什么吗?");
 
         webView = container.findViewById(R.id.web);
         webView.setWebViewClient(new WebViewClient() {
@@ -270,6 +283,8 @@ public class VoiceAssistantActivity extends Activity implements View.OnClickList
         rvRecommend = container.findViewById(R.id.list_recommend);
         rvRecommend.setLayoutManager(new LinearLayoutManager(this, RecyclerView.HORIZONTAL, false));
         rvRecommend.setAdapter(adapter);
+
+        container.setVisibility(View.GONE);
     }
 
     @Override
@@ -327,7 +342,9 @@ public class VoiceAssistantActivity extends Activity implements View.OnClickList
             case SETTING_XXX:
                 break;
             case DISPLAY_XXX:
-                ShowWebAction.showWeb(mAssistantResponse.getWebPage(), webView);
+                recyclerView.setVisibility(View.VISIBLE);
+                recyclerView.setAdapter(adapter);
+                //ShowWebAction.showWeb(mAssistantResponse.getWebPage(), webView);
                 break;
             default:
                 speakAnswer("抱歉，我没有听懂");
