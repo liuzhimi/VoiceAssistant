@@ -2,6 +2,7 @@ package com.lzm.voiceassistant.bean;
 
 public enum Service {
 
+    COMMUNICATION(3, "对话"),
     SETTING_XXX(2, "设置xx"),
     DISPLAY_XXX(1, "展示xx"),
     OPEN_XXX(0, "打开xx"); //
@@ -32,6 +33,8 @@ public enum Service {
 
     public static Service valueOf(int value) {
         switch (value) {
+            case 3:
+                return COMMUNICATION;
             case 2:
                 return SETTING_XXX;
             case 1:

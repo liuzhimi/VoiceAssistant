@@ -59,6 +59,7 @@
         android:layout_height="200dp">
 
         <TextView
+            android:id="@+id/tv_sample"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentLeft="true"
@@ -73,6 +74,13 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_above="@id/start_understander"/>
+
+        <com.lzm.voiceassistant.view.SiriView
+            android:id="@+id/siri"
+            android:layout_width="match_parent"
+            android:layout_height="100dp"
+            android:layout_above="@id/start_understander"
+            android:visibility="gone"/>
 
         <ImageButton
             android:id="@+id/start_understander"

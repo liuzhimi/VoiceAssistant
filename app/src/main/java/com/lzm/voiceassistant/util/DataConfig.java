@@ -24,14 +24,27 @@ public class DataConfig {
         return orders;
     }
 
-    public static AssistantResponse getAssistantResponse() {
+    public static AssistantResponse getAssistantResponse(String s) {
         AssistantResponse assistantResponse = new AssistantResponse();
-        assistantResponse.setAnswer(new AnswerBean("", "TT"));
+        if (s.contains("查看数据")) {
+            assistantResponse.setAnswer(new AnswerBean("以下是为您查询到的数据", "TT"));
+            assistantResponse.setService(Service.DISPLAY_XXX);
+        } else if (s.contains("你在干什么")) {
+            assistantResponse.setAnswer(new AnswerBean("你猜我在干什么", "TT"));
+            assistantResponse.setService(Service.COMMUNICATION);
+        } else if (s.contains("查看百度页面")) {
+            assistantResponse.setAnswer(new AnswerBean("这是您想要查看的网页", "TT"));
+            assistantResponse.setService(Service.OPEN_XXX);
+            assistantResponse.setWebPage(new WebPageBean(null, "https://www.baidu.com"));
+        } else {
+            assistantResponse.setAnswer(new AnswerBean("好的，正在退出", "TT"));
+            assistantResponse.setService(Service.SETTING_XXX);
+        }
+
         assistantResponse.setDataJson("{\"name\": \"Lemon\"}");
         assistantResponse.setMoreResults(null);
-        assistantResponse.setService(Service.DISPLAY_XXX);
-        assistantResponse.setText("打开百度");
-        assistantResponse.setWebPage(new WebPageBean(null, "https://www.baidu.com"));
+        assistantResponse.setText(s);
+
         return assistantResponse;
     }
 }

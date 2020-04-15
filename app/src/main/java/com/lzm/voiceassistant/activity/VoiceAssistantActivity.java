@@ -37,14 +37,16 @@ import com.lzm.voiceassistant.action.ShowWebAction;
 import com.lzm.voiceassistant.adapter.OrderAdapter;
 import com.lzm.voiceassistant.bean.AssistantResponse;
 import com.lzm.voiceassistant.bean.Name;
+import com.lzm.voiceassistant.bean.Result;
 import com.lzm.voiceassistant.bean.Service;
 import com.lzm.voiceassistant.util.DataConfig;
 import com.lzm.voiceassistant.util.DisplayUtil;
 import com.lzm.voiceassistant.util.WakeUtil;
+import com.lzm.voiceassistant.view.SiriView;
 
 public class VoiceAssistantActivity extends Activity implements View.OnClickListener, OrderAdapter.OrderCallback {
 
-    private static String TAG = VoiceAssistantActivity.class.getSimpleName();
+    private static String TAG = "Morris";
     private AssistantResponse mAssistantResponse;
     private SpeechRecognizer speechRecognizer;
     private Toast mToast;
@@ -54,6 +56,9 @@ public class VoiceAssistantActivity extends Activity implements View.OnClickList
     RecyclerView recyclerView;
     WebView webView;
     RecyclerView rvRecommend;
+    TextView tvSample;
+    SiriView siriView;
+
     OrderAdapter adapter;
 
     // 语音合成对象
@@ -66,6 +71,8 @@ public class VoiceAssistantActivity extends Activity implements View.OnClickList
     int ret = 0;
 
     boolean isVirtualData = true;
+
+    StringBuilder sb = new StringBuilder();
 
     /**
      * 初始化监听器（语音到语义）。
@@ -104,6 +111,7 @@ public class VoiceAssistantActivity extends Activity implements View.OnClickList
         public void onBeginOfSpeech() {
             // 此回调表示：sdk内部录音机已经准备好了，用户可以开始语音输入
             showTip("开始说话");
+            sb = new StringBuilder();
         }
 
         @Override
@@ -123,16 +131,23 @@ public class VoiceAssistantActivity extends Activity implements View.OnClickList
 
         @Override
         public void onResult(RecognizerResult results, boolean isLast) {
-            resetView();
             if (null != results) {
                 Log.d(TAG, results.getResultString());
 
                 // 显示
                 String text = results.getResultString();
-                Log.e(TAG, text);
+                Result result = JSONObject.parseObject(text, Result.class);
+                Log.i(TAG, "onResult: " + result.getBg());
+                for (Result.WsBean ws : result.getWs()) {
+                    for (Result.WsBean.CwBean cw : ws.getCw()) {
+                        sb.append(cw.getW());
+                    }
+                }
+
                 try {
                     if (isVirtualData) {
-                        mAssistantResponse = DataConfig.getAssistantResponse();
+                        mAssistantResponse = DataConfig.getAssistantResponse(sb.toString());
+
                     } else {
                         mAssistantResponse = (AssistantResponse) JSONObject.parse(text);
                     }
@@ -213,6 +228,8 @@ public class VoiceAssistantActivity extends Activity implements View.OnClickList
 
     private WakeUtil wakeUtil;
 
+    private Boolean isFirst = true;
+
     @SuppressLint("ShowToast")
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -233,19 +250,29 @@ public class VoiceAssistantActivity extends Activity implements View.OnClickList
         wakeUtil = new WakeUtil(this) {
             @Override
             public void wakeUp() {
-                container.setVisibility(View.VISIBLE);
-                speakAnswer("我能帮您做什么吗?");
-                wakeUtil.stopWake();
+                if (container.getVisibility() != View.VISIBLE) {
+                    container.setVisibility(View.VISIBLE);
+                    speakAnswer("我能帮您做什么吗?");
+                    wakeUtil.stopWake();
+                }
+                startListen();
             }
         };
 
         wakeUtil.wake();
     }
 
-    private void resetView() {
+    private void resetView(boolean flag) {
         mAskText.setVisibility(View.GONE);
+        if (!flag) {
+            responseText.setVisibility(View.GONE);
+        }
         recyclerView.setVisibility(View.GONE);
         recyclerView.setVisibility(View.GONE);
+        webView.setVisibility(View.GONE);
+        tvSample.setVisibility(View.GONE);
+        rvRecommend.setVisibility(View.GONE);
+        siriView.setVisibility(View.VISIBLE);
     }
 
     /**
@@ -284,6 +311,10 @@ public class VoiceAssistantActivity extends Activity implements View.OnClickList
         rvRecommend.setLayoutManager(new LinearLayoutManager(this, RecyclerView.HORIZONTAL, false));
         rvRecommend.setAdapter(adapter);
 
+        tvSample = container.findViewById(R.id.tv_sample);
+
+        siriView = container.findViewById(R.id.siri);
+
         container.setVisibility(View.GONE);
     }
 
@@ -291,18 +322,25 @@ public class VoiceAssistantActivity extends Activity implements View.OnClickList
     public void onClick(View view) {
         // 开始语音理解
         if (view.getId() == R.id.start_understander) {
-            mTts.stopSpeaking();
+            startListen();
+        }
+    }
 
-            if (speechRecognizer.isListening()) {
-                speechRecognizer.stopListening();
-                //showTip("停止录音");
-            }
-            ret = speechRecognizer.startListening(mRecognizerListener);
-            if (ret != 0) {
-                showTip("语义理解失败,错误码:" + ret);
-            } else {
-                showTip("请开始说话…");
-            }
+    private void startListen() {
+        mTts.stopSpeaking();
+
+        if (speechRecognizer.isListening()) {
+            speechRecognizer.stopListening();
+            //showTip("停止录音");
+        }
+        wakeUtil.stopWake();
+        resetView(isFirst);
+        isFirst = false;
+        ret = speechRecognizer.startListening(mRecognizerListener);
+        if (ret != 0) {
+            showTip("语义理解失败,错误码:" + ret);
+        } else {
+            showTip("请开始说话…");
         }
     }
 
@@ -332,22 +370,37 @@ public class VoiceAssistantActivity extends Activity implements View.OnClickList
 
         Service service = mAssistantResponse.getService();
         Log.i(TAG, "judgeService: " + service.getName());
-        speakAnswer(mAssistantResponse.getAnswer().getText());
 
+        tvSample.setVisibility(View.VISIBLE);
+        rvRecommend.setVisibility(View.VISIBLE);
+        siriView.setVisibility(View.GONE);
+
+        speakAnswer(mAssistantResponse.getAnswer().getText());
+        responseText.setVisibility(View.VISIBLE);
         switch (service) {
             case OPEN_XXX:
-                Intent intent = new Intent(this, TestActivity.class);
-                startActivity(intent);
+                ShowWebAction.showWeb(mAssistantResponse.getWebPage(), webView);
+                wakeUtil.wake();
                 break;
             case SETTING_XXX:
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        isFirst = true;
+                        container.setVisibility(View.GONE);
+                        wakeUtil.wake();
+                    }
+                }, 2000);
                 break;
             case DISPLAY_XXX:
                 recyclerView.setVisibility(View.VISIBLE);
                 recyclerView.setAdapter(adapter);
-                //ShowWebAction.showWeb(mAssistantResponse.getWebPage(), webView);
+                wakeUtil.wake();
+                break;
+            case COMMUNICATION:
+                wakeUtil.wake();
                 break;
             default:
-                speakAnswer("抱歉，我没有听懂");
                 break;
         }
 
