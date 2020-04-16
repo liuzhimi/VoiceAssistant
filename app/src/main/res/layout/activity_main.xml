@@ -8,8 +8,8 @@
 
     <com.lzm.voiceassistant.view.FloatingBallView
         android:id="@+id/a"
-        android:layout_width="30dp"
-        android:layout_height="30dp"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
         tools:ignore="MissingConstraints" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -36,7 +36,6 @@ import com.lzm.voiceassistant.R;
 import com.lzm.voiceassistant.action.ShowWebAction;
 import com.lzm.voiceassistant.adapter.OrderAdapter;
 import com.lzm.voiceassistant.bean.AssistantResponse;
-import com.lzm.voiceassistant.bean.Name;
 import com.lzm.voiceassistant.bean.Result;
 import com.lzm.voiceassistant.bean.Service;
 import com.lzm.voiceassistant.util.DataConfig;
@@ -44,7 +43,7 @@ import com.lzm.voiceassistant.util.DisplayUtil;
 import com.lzm.voiceassistant.util.WakeUtil;
 import com.lzm.voiceassistant.view.SiriView;
 
-public class VoiceAssistantActivity extends Activity implements View.OnClickListener, OrderAdapter.OrderCallback {
+public class VoiceAssistantActivity extends Activity implements View.OnClickListener {
 
     private static String TAG = "Morris";
     private AssistantResponse mAssistantResponse;
@@ -292,7 +291,7 @@ public class VoiceAssistantActivity extends Activity implements View.OnClickList
 
         recyclerView = container.findViewById(R.id.list);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new OrderAdapter(this);
+        adapter = new OrderAdapter();
         adapter.setOrders(DataConfig.getOrders());
 
         webView = container.findViewById(R.id.web);
@@ -377,49 +376,54 @@ public class VoiceAssistantActivity extends Activity implements View.OnClickList
 
         speakAnswer(mAssistantResponse.getAnswer().getText());
         responseText.setVisibility(View.VISIBLE);
-        switch (service) {
-            case OPEN_XXX:
-                ShowWebAction.showWeb(mAssistantResponse.getWebPage(), webView);
-                wakeUtil.wake();
-                break;
-            case SETTING_XXX:
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        isFirst = true;
-                        container.setVisibility(View.GONE);
-                        wakeUtil.wake();
-                    }
-                }, 2000);
-                break;
-            case DISPLAY_XXX:
-                recyclerView.setVisibility(View.VISIBLE);
-                recyclerView.setAdapter(adapter);
-                wakeUtil.wake();
-                break;
-            case COMMUNICATION:
-                wakeUtil.wake();
-                break;
-            default:
-                break;
-        }
 
+        service.getAction().action(this);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        wakeUtil.stopWake();
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         // 退出时释放连接
-        speechRecognizer.cancel();
-        speechRecognizer.destroy();
+        if (speechRecognizer != null) {
+            speechRecognizer.cancel();
+            speechRecognizer.destroy();
+        }
         mTts.stopSpeaking();
         // 退出时释放连接
         mTts.destroy();
 
     }
 
-    @Override
-    public void showOrderDetail(Name order) {
+    public void showWebView() {
+        webView.setVisibility(View.VISIBLE);
+        webView.loadUrl(mAssistantResponse.getWebPage().getUrl());
+        wake();
+    }
 
+    public void showRecyclerView() {
+        recyclerView.setVisibility(View.VISIBLE);
+        recyclerView.setAdapter(adapter);
+        wake();
+    }
+
+    public void closeView() {
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                isFirst = true;
+                container.setVisibility(View.GONE);
+                wake();
+            }
+        }, 2000);
+    }
+
+    public void wake() {
+        wakeUtil.wake();
     }
 }

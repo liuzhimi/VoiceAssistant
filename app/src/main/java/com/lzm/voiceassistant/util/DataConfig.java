@@ -38,7 +38,7 @@ public class DataConfig {
             assistantResponse.setWebPage(new WebPageBean(null, "https://www.baidu.com"));
         } else {
             assistantResponse.setAnswer(new AnswerBean("好的，正在退出", "TT"));
-            assistantResponse.setService(Service.SETTING_XXX);
+            assistantResponse.setService(Service.CLOSE_XXX);
         }
 
         assistantResponse.setDataJson("{\"name\": \"Lemon\"}");

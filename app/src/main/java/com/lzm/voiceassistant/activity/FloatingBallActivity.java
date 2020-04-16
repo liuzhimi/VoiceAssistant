@@ -29,10 +29,5 @@ public class FloatingBallActivity extends AppCompatActivity {
                 startActivity(new Intent(context, VoiceAssistantActivity.class));
             }
         });
-//        startActivity(new Intent(context, WakeDemo.class));
-    }
-
-    private void getFloatingBallStatus() {
-        // 通过SP保存开启状态
     }
 }

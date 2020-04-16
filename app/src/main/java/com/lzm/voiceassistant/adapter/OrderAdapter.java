@@ -25,12 +25,6 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
     @NonNull
     private List<Name> orders = new ArrayList<>();
 
-    private OrderCallback orderCallback;
-
-    public OrderAdapter(OrderCallback orderCallback) {
-        this.orderCallback = orderCallback;
-    }
-
     public void setOrders(@NonNull List<Name> orders) {
         this.orders = orders;
         notifyDataSetChanged();
@@ -50,9 +44,6 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
             holder.name.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if (orderCallback != null) {
-                        orderCallback.showOrderDetail(order);
-                    }
                 }
             });
             holder.name.setText(order.getName());
@@ -78,9 +69,5 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
             item = itemView.findViewById(R.id.view_content);
             name = itemView.findViewById(R.id.txt_name);
         }
-    }
-
-    public interface OrderCallback {
-        void showOrderDetail(Name order);
     }
 }

@@ -1,7 +1,6 @@
 package com.lzm.voiceassistant.view;
 
 import android.animation.ObjectAnimator;
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Handler;
 import android.util.AttributeSet;
@@ -10,11 +9,10 @@ import android.view.MotionEvent;
 import android.view.animation.DecelerateInterpolator;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.lzm.voiceassistant.VoiceAssistantSwitch;
-import com.lzm.voiceassistant.util.DisplayUtil;
 import com.lzm.voiceassistant.OnTouch;
+import com.lzm.voiceassistant.util.DisplayUtil;
 
-public class FloatingBallView extends FloatingActionButton implements VoiceAssistantSwitch {
+public class FloatingBallView extends FloatingActionButton {
 
     private static final String TAG = "Morris";
 
@@ -81,20 +79,20 @@ public class FloatingBallView extends FloatingActionButton implements VoiceAssis
                 getParent().requestDisallowInterceptTouchEvent(true);
                 lastX = rawX;
                 lastY = rawY;
-                break;
+                return true;
             case MotionEvent.ACTION_MOVE:
                 Log.i(TAG, "onTouchEvent: ACTION_MOVE ");
                 if (handler.hasCallbacks(runnable)) {
                     handler.removeCallbacks(runnable);
                 }
                 isDrag = true;
+                setAlpha(1f);
                 //计算手指移动了多少
                 int dx = rawX - lastX;
                 int dy = rawY - lastY;
                 //这里修复一些华为手机无法触发点击事件的问题
                 int distance = (int) Math.sqrt(dx * dx + dy * dy);
-                Log.i(TAG, "onTouchEvent: alpha " + getAlpha());
-                if (distance == 0 || getAlpha() < 1f) {
+                if (distance == 0) {
                     isDrag = false;
                     return false;
                 }
@@ -107,14 +105,12 @@ public class FloatingBallView extends FloatingActionButton implements VoiceAssis
                 setY(y);
                 lastX = rawX;
                 lastY = rawY;
-                //Log.i("getX="+getX()+";getY="+getY()+";screenHeight="+screenHeight);
                 break;
             case MotionEvent.ACTION_UP:
                 Log.i(TAG, "onTouchEvent: ACTION_UP " + isDrag);
                 if (isDrag) {
                     //恢复按压效果
                     setPressed(false);
-                    Log.i("Morris", "getX=" + getX() + "；screenWidthHalf=" + screenWidthHalf);
                     if (rawX >= screenWidthHalf) {
                         animate().setInterpolator(new DecelerateInterpolator())
                                 .setDuration(500)
@@ -138,26 +134,10 @@ public class FloatingBallView extends FloatingActionButton implements VoiceAssis
                 break;
         }
         //如果是拖拽则消耗事件，否则正常传递即可。
-        return true;
+        return isDrag || super.onTouchEvent(event);
     }
 
     public void setOnTouch(OnTouch onTouch) {
         this.onTouch = onTouch;
-    }
-
-    @Override
-    public boolean getSwitchStatus() {
-        // TODO: 获取开关状态
-        return false;
-    }
-
-    @SuppressLint("RestrictedApi")
-    @Override
-    public void setFloatingBallVisibility(boolean flag) {
-        if (flag) {
-            this.setVisibility(VISIBLE);
-        } else {
-            this.setVisibility(GONE);
-        }
     }
 }
